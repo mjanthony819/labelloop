@@ -51,19 +51,35 @@ inspectable classical baseline - not a neural network.
 
 Simulated labeling on the 360-comment demo set: start with 2 labels per theme,
 request 5 at a time (model-chosen vs random), retrain, score macro-F1 on a
-held-out 30% split the simulated labeler never sees. Mean of 3 seeds.
+held-out 30% split the simulated labeler never sees. Mean of 3 paired seeds
+(11, 23, 37): both strategies see the same split, same starting labels and the
+same label budget each round; the band is +/-1 SD across seeds.
+
+Leakage controls, checked in the code (`evaluate.js`, `run_benchmark.mjs`):
+
+- The held-out split is never passed to `fit` - the TF-IDF vocabulary/IDF and
+  the classifier are trained on the labeled subset only.
+- Active suggestions only query the unlabeled training pool; hidden reference
+  labels are never visible to the picking strategy.
+- Fixed 24 rounds, no early stopping informed by test scores.
 
 | | Active (model picks) | Random |
 |---|---|---|
 | Final macro-F1 after 127 labels | **0.997** | 0.879 |
-| Labels to reach 95% of each curve's best | **72** | 112 |
+| Labels for the mean curve to reach macro-F1 0.90 | **72** | not reached within 127 |
 
-Training on the full demo set, held-out 30%: macro-F1 **0.991**, bootstrap 95%
-interval [0.966, 1.000], n=108.
+The target row compares both strategies against one bar (macro-F1 0.90). The
+threshold is fixed but post-hoc - picked after seeing the curves - so read it
+as a descriptive crossing on this synthetic dataset, not a preregistered
+result and not a promised label saving on other data.
+
+Trained on the 70% training split (stratified, seed 5), evaluated on the held-out 30%: macro-F1
+**0.991**, bootstrap 95% interval [0.966, 1.000] (500 resamples of test
+predictions, percentile method, unit: macro-F1), n=108.
 
 These numbers come from a synthetic dataset with clean themes - real feedback
-is messier and will score lower. They show the labeling loop works and saves
-effort; they are not a promised accuracy for your data.
+is messier and will score lower. They show the labeling loop works end to end;
+they are not a promised accuracy for your data.
 
 Reproduce exactly (fixed seeds):
 
