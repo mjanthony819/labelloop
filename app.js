@@ -391,13 +391,18 @@ function svgLineChart(series, { width = 880, height = 320, pad = 46 } = {}) {
     const pts = s.y.map((y, i) => `${X(s.x[i])},${Y(y)}`).join(" ");
     out += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2"/>`;
   }
-  let lx = width - pad - 170;
+  const legendX = width - pad - 150;
+  let ly = pad - 30;
   for (const s of series) {
-    out += `<line x1="${lx}" y1="${pad - 22}" x2="${lx + 22}" y2="${pad - 22}" stroke="${s.color}" stroke-width="2"/>`;
-    out += `<text x="${lx + 28}" y="${pad - 18}" font-size="12" fill="#22302a">${esc(s.name)}</text>`;
-    lx += 110;
+    out += `<line x1="${legendX}" y1="${ly}" x2="${legendX + 22}" y2="${ly}" stroke="${s.color}" stroke-width="2"/>`;
+    out += `<text x="${legendX + 28}" y="${ly + 4}" font-size="12" fill="#22302a">${esc(s.name)}</text>`;
+    ly += 18;
   }
   return out + "</svg>";
+}
+
+function fmtCrossing(v) {
+  return v === null || v === undefined ? "not reached within the tested budget" : String(v);
 }
 
 function renderBench(bench, note) {
@@ -411,13 +416,15 @@ function renderBench(bench, note) {
   const rLast = curves.random.f1Mean.at(-1);
   $("bench-numbers").innerHTML =
     `After <b>${curves.active.labelsUsed.at(-1)}</b> labels: active <b>${aLast}</b> vs random <b>${rLast}</b> macro-F1. ` +
-    `Labels needed to reach 95% of each curve's best: <b>${curves.activeLabelsTo95}</b> (active) vs <b>${curves.randomLabelsTo95}</b> (random). ` +
+    `Labels used when each 3-seed mean curve first reaches macro-F1 ${curves.targetMacroF1} (a fixed but post-hoc descriptive threshold, picked after seeing the curves): ` +
+    `<b>${fmtCrossing(curves.activeLabelsToTarget)}</b> (active) vs <b>${fmtCrossing(curves.randomLabelsToTarget)}</b> (random). ` +
+    `That is a descriptive crossing on this synthetic dataset, not a promised saving on other data. ` +
     `${note ? `<span class="muted">${esc(note)}</span>` : ""}`;
   const perClass = rep.perClass
     .map((r) => `<tr><td>${esc(displayClass(r.class))}</td><td>${r.precision}</td><td>${r.recall}</td><td>${r.f1}</td><td>${r.support}</td></tr>`)
     .join("");
   $("final-report").innerHTML =
-    `<p>Training on the full demo set and testing on a held-out 30% split: macro-F1 <b>${rep.macroF1}</b> ` +
+    `<p>Trained on the 70% training split, evaluated on the held-out 30%: macro-F1 <b>${rep.macroF1}</b> ` +
     `(bootstrap 95% interval [${rep.macroF1ci95[0]}, ${rep.macroF1ci95[1]}], n=${rep.nTest}).</p>` +
     `<table class="plain"><tr><th>Theme</th><th>Precision</th><th>Recall</th><th>F1</th><th>Support</th></tr>${perClass}</table>`;
 }
@@ -427,7 +434,7 @@ async function loadBench() {
   try {
     const res = await fetch("benchmark.json");
     if (!res.ok) throw new Error(String(res.status));
-    renderBench(await res.json(), "Precomputed by scripts/run_benchmark.mjs - re-run it live above.");
+    renderBench(await res.json(), "Precomputed by run_benchmark.mjs - re-run it live above.");
   } catch {
     $("bench-status").textContent = "Could not load the precomputed numbers - use the re-run button.";
   }
