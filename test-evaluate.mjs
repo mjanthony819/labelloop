@@ -38,8 +38,9 @@ test("active learning reaches high confidence with few labels on the demo set", 
   const lastActive = cmp.active.f1Mean.at(-1);
   assert.ok(lastActive >= 0.75, `active final macro-F1 ${lastActive} should clear 0.75`);
   assert.ok(
-    cmp.activeLabelsTo95 !== null && cmp.activeLabelsTo95 <= cmp.randomLabelsTo95,
-    `active (${cmp.activeLabelsTo95}) should need no more labels than random (${cmp.randomLabelsTo95})`,
+    cmp.activeLabelsToTarget !== null &&
+      (cmp.randomLabelsToTarget === null || cmp.activeLabelsToTarget <= cmp.randomLabelsToTarget),
+    `active (${cmp.activeLabelsToTarget}) should reach the fixed target no later than random (${cmp.randomLabelsToTarget})`,
   );
 });
 
