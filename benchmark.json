@@ -1,7 +1,7 @@
 {
  "generated": "deterministic, see run_benchmark.mjs",
  "dataset": {
-  "description": "360 synthetic community-class feedback comments, generated in code (src/dataset.js). No real people's data.",
+  "description": "360 synthetic community-class feedback comments, generated in code (dataset.js). No real people's data.",
   "nItems": 360,
   "classes": [
    {
