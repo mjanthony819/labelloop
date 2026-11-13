@@ -1,4 +1,4 @@
-// Regenerates assets/benchmark.json from the repo's own code and prints the
+// Regenerates benchmark.json from the repo's own code and prints the
 // summary numbers used in the README. Run: node run_benchmark.mjs
 // Everything is seeded; re-running produces identical numbers.
 
@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
 import { generate, CLASSES, CLASS_LABELS } from "./dataset.js";
 import { compareStrategies, finalReport } from "./evaluate.js";
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const root = dirname(fileURLToPath(import.meta.url));
 const { texts, labels } = generate({ nPerClass: 60, seed: 7 });
 
 console.log(`Demo dataset: ${texts.length} synthetic comments across ${CLASSES.length} themes`);
