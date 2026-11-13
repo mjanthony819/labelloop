@@ -59,3 +59,12 @@ test("perClassReport matches manual computation", () => {
   assert.equal(a.precision, 1);
   assert.equal(a.recall, 0.5);
 });
+
+test("committed benchmark.json matches a fresh run of the published protocol", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { BENCH_CONFIG, REPORT_CONFIG } = await import("./evaluate.js");
+  const bench = JSON.parse(readFileSync(new URL("./benchmark.json", import.meta.url)));
+  const { texts, labels } = generate({ nPerClass: 60, seed: 7 });
+  assert.deepEqual(compareStrategies(texts, labels, BENCH_CONFIG), bench.curves);
+  assert.deepEqual(finalReport(texts, labels, REPORT_CONFIG), bench.finalReport);
+});
