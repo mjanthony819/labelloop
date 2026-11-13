@@ -214,7 +214,7 @@ function renderLabel() {
 
   $("label-work").style.display = "block";
   $("suggestion-reason").textContent = queue.mode === "active"
-    ? "Picked because the model is least sure about this one - your label teaches it the most."
+    ? "Picked because the model is least sure about this one - a useful one to review next."
     : "Cold start: showing a varied spread of comments until the model has examples from at least two themes.";
   $("current-text").textContent = getItem(p, state.currentId).text;
 
