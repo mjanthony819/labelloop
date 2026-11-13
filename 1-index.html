@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LabelLoop - active-learning triage for open-text feedback</title>
+  <meta name="description" content="Label a few comments, and LabelLoop's in-browser model picks the ones worth your time next. Everything runs locally on your device." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="top">
+    <span class="brand">LabelLoop</span>
+    <span class="tagline">Label a little. Learn a lot. Nothing leaves your device.</span>
+    <nav class="tabs" id="tabs">
+      <button data-page="start" class="active">Start</button>
+      <button data-page="label">Label</button>
+      <button data-page="dashboard">Dashboard</button>
+      <button data-page="benchmark">Benchmark</button>
+      <button data-page="export">Save &amp; export</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ---------------------------------------------------------- Start -->
+    <section class="page active" id="page-start">
+      <div class="panel">
+        <h3>What is this?</h3>
+        <p>
+          Small teams collect piles of open-text feedback - survey comments, program
+          reviews, suggestion boxes - and then read every single one by hand, or pay
+          for a cloud service that takes the data away. LabelLoop is a third option:
+          <em>active learning</em> in your browser. You label a few comments, a small
+          model trains on your device, and it shows you the comments it is most unsure
+          about next - the ones worth your attention. Each label teaches it the most.
+        </p>
+        <p class="muted small">
+          Everything runs locally in this tab: the text, the training, the model.
+          There is no server. Save your work as a file and resume anywhere.
+        </p>
+      </div>
+
+      <div class="panel" id="resume-panel" style="display:none">
+        <h3>Welcome back</h3>
+        <p class="muted small" id="resume-summary"></p>
+        <div class="upload-row">
+          <button class="btn" id="btn-resume-local">Resume saved session</button>
+          <button class="btn ghost" id="btn-discard-local">Discard</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="panel">
+          <h3>Try the demo</h3>
+          <p class="muted small">
+            360 synthetic comments in the style of feedback for a community education
+            nonprofit - six themes, realistic noise, some genuinely ambiguous ones.
+            Ground truth is hidden so you can label for real and see how you agree.
+          </p>
+          <button class="btn" id="btn-demo">Load the demo dataset</button>
+        </div>
+        <div class="panel">
+          <h3>Bring your own feedback</h3>
+          <p class="muted small">
+            Upload a CSV with a <code>text</code> column (optional <code>id</code> and
+            <code>label</code> columns). The file is read locally in your browser and
+            never uploaded anywhere.
+          </p>
+          <div class="upload-row">
+            <input type="file" id="file-csv" accept=".csv,text/csv" />
+          </div>
+          <div class="upload-row">
+            <input type="text" id="csv-project-name" placeholder="Project name (optional)" />
+          </div>
+          <button class="btn secondary" id="btn-load-csv">Load CSV</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Resume from a project file</h3>
+        <div class="upload-row">
+          <input type="file" id="file-project" accept=".json,application/json" />
+        </div>
+        <button class="btn secondary" id="btn-load-project">Open project file</button>
+      </div>
+
+      <div class="note" id="start-status" style="display:none"></div>
+    </section>
+
+    <!-- ---------------------------------------------------------- Label -->
+    <section class="page" id="page-label">
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px">
+          <h3 style="margin:0" id="label-project-name">No project loaded</h3>
+          <span class="muted small" id="label-progress-text"></span>
+        </div>
+        <div class="progress-wrap" style="margin-top:10px"><div class="progress-fill" id="label-progress-fill" style="width:0%"></div></div>
+        <div class="chips" id="label-class-chips"></div>
+      </div>
+
+      <div class="panel" id="label-work" style="display:none">
+        <p class="muted small" id="suggestion-reason"></p>
+        <div class="label-card" id="current-text"></div>
+        <p class="small muted">What is this comment mainly about?</p>
+        <div class="class-buttons" id="class-buttons"></div>
+        <div class="upload-row">
+          <input type="text" id="new-class-name" placeholder="or add a new theme&hellip;" style="max-width:240px" />
+          <button class="btn ghost" id="btn-add-class">Add theme</button>
+          <span style="flex:1"></span>
+          <button class="btn ghost" id="btn-skip">Skip for now</button>
+          <button class="btn ghost" id="btn-undo">Undo last</button>
+        </div>
+        <div id="after-label" style="display:none">
+          <p class="small muted" style="margin-bottom:4px">What the model expected (indicative confidence, not calibrated):</p>
+          <div id="conf-bars"></div>
+        </div>
+      </div>
+
+      <div class="panel" id="label-queue-panel" style="display:none">
+        <h3>Coming up</h3>
+        <ul class="queue-list" id="queue-list"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- Dashboard -->
+    <section class="page" id="page-dashboard">
+      <div class="panel">
+        <h3>Progress</h3>
+        <div id="dash-summary" class="muted small">Load a project first.</div>
+        <div class="chips" id="dash-chips"></div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <h3>What the model has learned</h3>
+          <p class="muted small">Strongest words and phrases per theme, by model weight. This is how you check the model is listening to the right signals.</p>
+          <div id="top-terms" class="small"></div>
+        </div>
+        <div class="panel">
+          <h3>Unlabeled pile, predicted</h3>
+          <p class="muted small">Where the model would put the rest, and how sure it is. Review before trusting.</p>
+          <div id="pred-dist" class="small"></div>
+        </div>
+      </div>
+      <div class="panel" id="truth-panel" style="display:none">
+        <h3>Demo ground truth check</h3>
+        <p class="muted small">The demo set ships with hidden reference labels. This is how often your labels agree with them.</p>
+        <div id="truth-stats" class="small"></div>
+      </div>
+      <div class="panel">
+        <h3>Recent activity</h3>
+        <ul class="queue-list" id="history-list"></ul>
+      </div>
+    </section>
+
+    <!-- ------------------------------------------------------- Benchmark -->
+    <section class="page" id="page-benchmark">
+      <div class="panel">
+        <h3>Does active learning actually help?</h3>
+        <p class="muted small">
+          We simulated the labeling loop on the demo dataset (360 synthetic comments):
+          start with 2 labels per theme, then repeatedly ask for 5 more - picked either
+          by the model (active) or at random - retrain, and measure macro-F1 on a
+          held-out 30% split the simulated labeler never sees. Three seeds; the band is
+          &plusmn;1 standard deviation. The numbers below are computed by this
+          repository's code (<code>scripts/run_benchmark.mjs</code>), not written by hand.
+        </p>
+        <div class="upload-row">
+          <button class="btn secondary" id="btn-rerun-bench">Re-run the benchmark live in this browser</button>
+          <span class="muted small" id="bench-status"></span>
+        </div>
+      </div>
+      <div class="panel">
+        <div id="bench-chart"></div>
+        <div id="bench-numbers" class="small" style="margin-top:10px"></div>
+      </div>
+      <div class="panel">
+        <h3>Held-out quality with all labels</h3>
+        <div id="final-report" class="small"></div>
+      </div>
+      <div class="notice">
+        These results come from a synthetic demo dataset with clean themes. Real
+        feedback is messier and scores will be lower. Treat this as evidence that the
+        labeling loop works and saves effort - not as a promised accuracy for your data.
+      </div>
+    </section>
+
+    <!-- ---------------------------------------------------------- Export -->
+    <section class="page" id="page-export">
+      <div class="panel">
+        <h3>Save &amp; resume</h3>
+        <p class="muted small">
+          Your project is a single JSON file: the comments, your labels, and the full
+          history. Download it, resume it anywhere - it is the source of truth.
+          (This tab also autosaves to your browser's local storage.)
+        </p>
+        <div class="upload-row">
+          <button class="btn" id="btn-download-project">Download project file</button>
+          <button class="btn ghost" id="btn-clear-local">Forget autosaved session</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Export results</h3>
+        <div class="upload-row">
+          <button class="btn secondary" id="btn-download-csv">Labeled feedback (CSV)</button>
+          <button class="btn secondary" id="btn-download-modelcard">Model card (Markdown)</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Start over</h3>
+        <button class="btn ghost" id="btn-reset">Close this project</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    LabelLoop runs entirely in your browser - no server, no uploads, no tracking.
+    The demo dataset is synthetic, generated in code; no real people's feedback is
+    included. Model confidence scores are indicative, not calibrated probabilities.
+    Built with AI assistance, disclosed in the project repository.
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

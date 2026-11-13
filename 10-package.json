@@ -1,0 +1,11 @@
+{
+  "name": "labelloop",
+  "version": "0.1.0",
+  "description": "Local-first active-learning triage for open-text feedback. Runs entirely in the browser.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test tests/*.mjs",
+    "benchmark": "node scripts/run_benchmark.mjs"
+  }
+}
