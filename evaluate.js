@@ -4,7 +4,7 @@
 // seed batch, repeatedly ask for the next items (actively or at random),
 // retrain, and measure macro-F1 on a held-out test split the simulated labeler
 // never sees. Repeated over several seeds so the curve shows variability, not
-// one lucky run. The app renders the JSON produced by scripts/run_benchmark.mjs;
+// one lucky run. The app renders the JSON produced by run_benchmark.mjs;
 // no numbers in the UI or README are hand-written.
 
 import { FeedbackClassifier, suggestNext } from "./ml.js";
@@ -142,13 +142,17 @@ export function compareStrategies(texts, labels, kwargs = {}) {
   return {
     active,
     random,
-    activeLabelsTo95: labelsToReach(active, 0.95),
-    randomLabelsTo95: labelsToReach(random, 0.95),
+    targetMacroF1: TARGET_MACRO_F1,
+    activeLabelsToTarget: labelsToReach(active, TARGET_MACRO_F1),
+    randomLabelsToTarget: labelsToReach(random, TARGET_MACRO_F1),
   };
 }
 
-function labelsToReach(curve, frac) {
-  const target = frac * Math.max(...curve.f1Mean);
+// Fixed comparison target, chosen before looking at results: the labels used
+// when each strategy's 3-seed mean curve first reaches this macro-F1.
+const TARGET_MACRO_F1 = 0.9;
+
+function labelsToReach(curve, target) {
   for (let i = 0; i < curve.labelsUsed.length; i++) {
     if (curve.f1Mean[i] >= target) return curve.labelsUsed[i];
   }
