@@ -7,29 +7,22 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { generate, CLASSES, CLASS_LABELS } from "./dataset.js";
-import { compareStrategies, finalReport } from "./evaluate.js";
+import { compareStrategies, finalReport, BENCH_CONFIG, REPORT_CONFIG } from "./evaluate.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const { texts, labels } = generate({ nPerClass: 60, seed: 7 });
 
 console.log(`Demo dataset: ${texts.length} synthetic comments across ${CLASSES.length} themes`);
 
-const cmp = compareStrategies(texts, labels, {
-  seeds: [11, 23, 37],
-  initPerClass: 2,
-  step: 5,
-  rounds: 24,
-  testSize: 0.3,
-  modelOpts: { iters: 250 },
-});
+const cmp = compareStrategies(texts, labels, BENCH_CONFIG);
 
-const rep = finalReport(texts, labels, { seed: 5, nBoot: 500, modelOpts: { iters: 250 } });
+const rep = finalReport(texts, labels, REPORT_CONFIG);
 
 const out = {
   generated: "deterministic, see run_benchmark.mjs",
   dataset: {
     description:
-      "360 synthetic community-class feedback comments, generated in code (src/dataset.js). No real people's data.",
+      "360 synthetic community-class feedback comments, generated in code (dataset.js). No real people's data.",
     nItems: texts.length,
     classes: CLASSES.map((c) => ({ id: c, label: CLASS_LABELS[c] })),
   },
