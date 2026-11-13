@@ -527,9 +527,20 @@ function slug(s) {
   return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "labelloop";
 }
 
+function renderExport() {
+  const has = !!state.project;
+  const note = $("export-needs-project");
+  if (note) note.style.display = has ? "none" : "block";
+  ["btn-download-project", "btn-download-csv", "btn-download-modelcard"].forEach((id) => {
+    const b = $(id);
+    if (b) b.disabled = !has;
+  });
+}
+
 function render() {
   renderLabel();
   renderDashboard();
+  renderExport();
   const active = document.querySelector("#tabs button.active")?.dataset.page;
   if (active === "benchmark") loadBench();
 }
