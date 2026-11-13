@@ -7,7 +7,7 @@ import {
   labeledItems, unlabeledItems,
   toJSON, fromJSON, saveLocal, loadLocal, clearLocal,
 } from "./session.js";
-import { compareStrategies, finalReport } from "./evaluate.js";
+import { compareStrategies, finalReport, BENCH_CONFIG, REPORT_CONFIG } from "./evaluate.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -446,8 +446,10 @@ $("btn-rerun-bench").addEventListener("click", () => {
     const t0 = performance.now();
     import("./dataset.js").then(({ generate }) => {
       const { texts, labels } = generate({ nPerClass: 60, seed: 7 });
-      const curves = compareStrategies(texts, labels, { modelOpts: { iters: 200 } });
-      const rep = finalReport(texts, labels, { nBoot: 300, modelOpts: { iters: 200 } });
+      // Same protocol as run_benchmark.mjs (BENCH_CONFIG / REPORT_CONFIG), so
+      // a live re-run reproduces the precomputed numbers exactly.
+      const curves = compareStrategies(texts, labels, BENCH_CONFIG);
+      const rep = finalReport(texts, labels, REPORT_CONFIG);
       renderBench({ dataset: {}, setup: {}, curves, finalReport: rep },
         `Computed live in your browser in ${((performance.now() - t0) / 1000).toFixed(1)}s.`);
       $("bench-status").textContent = "Done.";
