@@ -136,6 +136,19 @@ export function simulateCurve(texts, labels, strategy, {
   return { labelsUsed, f1Mean, f1Std, nRuns: runs.length };
 }
 
+// Single source of truth for the published benchmark protocol. Used by
+// run_benchmark.mjs (precompute) and app.js (live re-run in the browser), so
+// the numbers a visitor reproduces match the committed benchmark.json.
+export const BENCH_CONFIG = {
+  seeds: [11, 23, 37],
+  initPerClass: 2,
+  step: 5,
+  rounds: 24,
+  testSize: 0.3,
+  modelOpts: { iters: 250 },
+};
+export const REPORT_CONFIG = { seed: 5, nBoot: 500, modelOpts: { iters: 250 } };
+
 export function compareStrategies(texts, labels, kwargs = {}) {
   const active = simulateCurve(texts, labels, "active", kwargs);
   const random = simulateCurve(texts, labels, "random", kwargs);
