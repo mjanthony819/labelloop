@@ -92,7 +92,7 @@ browser.
 
 ## Tests
 
-34 tests over the ML core, samplers, dataset generator, session persistence and
+35 tests over the ML core, samplers, dataset generator, session persistence and
 evaluation (Node's built-in runner, no dependencies):
 
 ```bash
