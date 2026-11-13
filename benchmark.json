@@ -1,5 +1,5 @@
 {
- "generated": "deterministic, see scripts/run_benchmark.mjs",
+ "generated": "deterministic, see run_benchmark.mjs",
  "dataset": {
   "description": "360 synthetic community-class feedback comments, generated in code (src/dataset.js). No real people's data.",
   "nItems": 360,
@@ -205,8 +205,9 @@
    ],
    "nRuns": 3
   },
-  "activeLabelsTo95": 72,
-  "randomLabelsTo95": 112
+  "targetMacroF1": 0.9,
+  "activeLabelsToTarget": 72,
+  "randomLabelsToTarget": null
  },
  "finalReport": {
   "macroF1": 0.9907,
